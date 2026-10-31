@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>בקשה לסיוע משפטי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=David+Libre:wght@400;700&display=swap">
+<style>
+/* Layout: one narrow column, a stepped form with a sticky progress band; the PDF is drawn to canvas in David Libre. */
+:root{
+  --bg:#f3f5f6; --surface:#ffffff; --ink:#18232b; --muted:#5b6a73; --line:#d6dde1;
+  --accent:#1d5a63; --accent-soft:#e2eff0; --danger:#a3322b; --pad:#ffffff; --pad-ink:#101820;
+  --display:"David Libre","David","Frank Ruhl Libre",serif;
+  --body:"Assistant","Segoe UI","Arial Hebrew",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181c; --surface:#1a2329; --ink:#e7eef1; --muted:#9aabb3; --line:#2e3b43;
+  --accent:#6fb8c2; --accent-soft:#1e3439; --danger:#ef8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181c; --surface:#1a2329; --ink:#e7eef1; --muted:#9aabb3; --line:#2e3b43;
+  --accent:#6fb8c2; --accent-soft:#1e3439; --danger:#ef8a80; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{direction:rtl;max-width:620px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:14px max(16px,env(safe-area-inset-right,0px)) 12px}
+.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-size:26px;margin:2px 0 10px;font-weight:700;text-wrap:balance}
+.bar{display:flex;gap:4px}
+.bar span{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.bar span.on{background:var(--accent)}
+.steplabel{font-size:13px;color:var(--muted);margin-top:6px}
+section.step{display:flex;flex-direction:column;gap:18px;padding-top:22px}
+h2{font-family:var(--display);font-size:22px;margin:0;font-weight:700}
+.hint{color:var(--muted);font-size:15px;margin:-10px 0 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:460px){.grid{grid-template-columns:1fr}}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f label,.lbl{font-weight:600;font-size:15px}
+.opt{color:var(--muted);font-weight:400;font-size:13px}
+input[type=text],input[type=tel],input[type=date],textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px;width:100%;box-sizing:border-box}
+textarea{min-height:96px;resize:vertical}
+input:focus-visible,textarea:focus-visible,button:focus-visible,.choice:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.err{color:var(--danger);font-size:14px;min-height:0}
+.f.bad input,.f.bad textarea{border-color:var(--danger)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;background:var(--surface);font-weight:400}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips label:has(input:checked){background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-top:1px solid var(--line);cursor:pointer}
+.choice:first-child{border-top:0}
+.choice input{margin-top:5px;accent-color:var(--accent);width:18px;height:18px;flex:none}
+.choice:has(input:checked){background:var(--accent-soft)}
+.docs{margin:6px 0 0;padding:0 18px 0 0;font-size:14px;color:var(--muted)}
+.docs b{color:var(--ink)}
+.note{background:var(--accent-soft);border-radius:10px;padding:12px 14px;font-size:15px}
+.decl{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px 16px;font-family:var(--display);font-size:17px;line-height:1.7}
+.decl ol{margin:0;padding-right:20px}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.check input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px;flex:none}
+.padwrap{display:flex;flex-direction:column;gap:6px}
+canvas#pad{width:100%;height:180px;background:var(--pad);border:1px dashed var(--muted);border-radius:10px;touch-action:none;display:block}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:600;border-radius:9px;padding:12px 18px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button.link{border:0;background:none;color:var(--accent);padding:4px 0;text-decoration:underline}
+.nav{display:flex;justify-content:space-between;gap:10px;padding-top:8px}
+.nav .primary{flex:1}
+.pages{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.pages img{width:150px;max-width:100%;border:1px solid var(--line);border-radius:4px;background:#fff;flex:none}
+.addr{display:flex;flex-direction:column;gap:8px}
+.addr div{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--surface)}
+.addr code{direction:ltr;font-size:15px;user-select:all;word-break:break-all;min-width:0}
+.small{font-size:14px;color:var(--muted)}
+.ok{color:var(--accent);font-weight:600}
+@media (prefers-reduced-motion:no-preference){section.step{animation:in .2s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+</style>
+</head>
+<body>
+
+<div class="wrap" lang="he" dir="rtl">
+  <header class="top">
+    <div class="eyebrow">טופס הכנה למילוי מקוון</div>
+    <h1>בקשה לסיוע משפטי</h1>
+    <div class="bar" id="bar"></div>
+    <div class="steplabel" id="steplabel"></div>
+  </header>
+
+  <form id="form" novalidate autocomplete="on">
+    <!-- 1 -->
+    <section class="step" data-step="personal">
+      <h2>פרטים אישיים</h2>
+      <div class="grid">
+        <div class="f"><label for="first">שם פרטי</label><input id="first" type="text" required autocomplete="given-name"><div class="err"></div></div>
+        <div class="f"><label for="last">שם משפחה</label><input id="last" type="text" required autocomplete="family-name"><div class="err"></div></div>
+        <div class="f"><label for="pn">מספר אישי</label><input id="pn" type="text" inputmode="numeric" required><div class="err"></div></div>
+        <div class="f"><label for="tz">מספר תעודת זהות</label><input id="tz" type="text" inputmode="numeric" maxlength="9" required><div class="err"></div></div>
+      </div>
+      <div class="f" id="f-stype">
+        <span class="lbl">סוג שירות</span>
+        <div class="chips" role="radiogroup">
+          <label><input type="radio" name="stype" value="חובה">חובה</label>
+          <label><input type="radio" name="stype" value="קבע">קבע</label>
+          <label><input type="radio" name="stype" value="מתנדב">מתנדב</label>
+          <label><input type="radio" name="stype" value="גמלאי">גמלאי</label>
+          <label><input type="radio" name="stype" value="אחר">אחר</label>
+        </div>
+        <input id="stypeOther" type="text" placeholder="פרט/י" hidden>
+        <div class="err"></div>
+      </div>
+      <div class="grid">
+        <div class="f"><label for="rank">דרגה</label><input id="rank" type="text" required><div class="err"></div></div>
+        <div class="f"><label for="phone">טלפון נייד</label><input id="phone" type="tel" inputmode="tel" required autocomplete="tel"><div class="err"></div></div>
+        <div class="f"><label for="role">תפקיד</label><input id="role" type="text" required><div class="err"></div></div>
+        <div class="f"><label for="unit">יחידת השירות</label><input id="unit" type="text" required><div class="err"></div></div>
+      </div>
+      <div class="f"><label for="welfare">קצין/ת הרווחה המטפל/ת <span class="opt">(אם ידוע)</span></label><input id="welfare" type="text"></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="step" data-step="proc" hidden>
+      <h2>ההליך המשפטי המבוקש</h2>
+      <p class="hint">יש לבחור את ההליך שבגינו מתבקש מימון הייצוג. לאחר הבחירה תוצג רשימת המסמכים שיש לצרף.</p>
+      <div class="f" id="f-proc"><div class="list" id="procList"></div><div class="err"></div></div>
+      <div class="f" id="f-procOther" hidden><label for="procOther">פירוט ההליך</label><input id="procOther" type="text"><div class="err"></div></div>
+    </section>
+
+    <!-- 3 -->
+    <section class="step" data-step="rep" hidden>
+      <h2>הייצוג המשפטי</h2>
+      <div class="f" id="f-rep">
+        <div class="list">
+          <label class="choice"><input type="radio" name="rep" value="inbal"><span>אני מבקש/ת למנות לי עורך דין מטעם חברת הביטוח ענבל.</span></label>
+          <label class="choice"><input type="radio" name="rep" value="private"><span>אני מבקש/ת לקבל את סיוע המשטרה במימון הוצאות עורך דין פרטי.</span></label>
+        </div>
+        <div class="err"></div>
+      </div>
+      <div class="note">ידוע לי כי במידה שאבחר בייצוג פרטי, תקרת התשלומים שאקבל תהיה בהתאם לתעריף חברת הביטוח ענבל. כמו כן, לבקשה להחזר עבור ייצוג פרטי יש לצרף קבלות.</div>
+      <div class="grid">
+        <div class="f"><label for="hdate">מועד הדיון הראשון <span class="opt">(אם נקבע)</span></label><input id="hdate" type="date"></div>
+        <div class="f"><label for="hplace">מקום הדיון <span class="opt">(אם נקבע)</span></label><input id="hplace" type="text"></div>
+      </div>
+      <div class="f"><label for="lawyer">עורך הדין המייצג <span class="opt">(אם כבר ידוע)</span></label><input id="lawyer" type="text"></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="step" data-step="event" hidden>
+      <h2>פרטי האירוע</h2>
+      <p class="hint">נדרש בחקירה במח"ש או בזימון לפוליגרף. יש לפרט בקצרה.</p>
+      <div class="f"><label for="edate">תאריך האירוע</label><input id="edate" type="date" required><div class="err"></div></div>
+      <div class="f"><label for="edesc">מה אירע</label><textarea id="edesc" required></textarea><div class="err"></div></div>
+      <div class="f"><label for="eres">תוצאות האירוע</label><textarea id="eres" required></textarea><div class="err"></div></div>
+      <div class="f"><label for="epos">עמדתך ביחס למיוחס לך</label><textarea id="epos" required></textarea><div class="err"></div></div>
+    </section>
+
+    <!-- 5 -->
+    <section class="step" data-step="sign" hidden>
+      <h2>הצהרה וחתימה</h2>
+      <div class="decl"><ol>
+        <li>הדיון בבקשה הוא בהתאם לפקודת מטא"ר 06.03.02 "זכות שוטר לסיוע משפטי".</li>
+        <li>ידוע לי כי אם אורשע בעבירה המיוחסת לי, והוועדה תחליט על השבת סכום הסיוע, אצטרך להשיב למשטרה את סכום הסיוע המשפטי ששולם לי או ששולם על ידי חברת ענבל לעורך הדין שייצג אותי (להלן: "סכום הסיוע"). חתימתי על בקשה זו הינה התחייבות כלפי משטרת ישראל והסכמה להפחתת סכום הסיוע ממשכורתי. התחייבות זו הינה על פי הוראת סעיף 25 לחוק הגנת השכר, התשי"ח-1958.</li>
+        <li>הנני מתחייב להודיע לרכז הוועדה, בגמר הדיון, על תוצאות המשפט ולהעביר לידיו עותק מהכרעת הדין.</li>
+      </ol></div>
+      <div class="f" id="f-agree"><label class="check"><input type="checkbox" id="agree">קראתי את האמור לעיל ואני מסכים/ה לו.</label><div class="err"></div></div>
+      <div class="f" id="f-sig">
+        <div class="padwrap">
+          <div class="row" style="justify-content:space-between"><span class="lbl">חתימה</span><button type="button" class="link" id="clearSig">ניקוי</button></div>
+          <canvas id="pad" aria-label="משטח חתימה"></canvas>
+          <span class="small">יש לחתום באצבע או בעכבר בתוך המסגרת.</span>
+        </div>
+        <div class="err"></div>
+      </div>
+      <div class="small">תאריך החתימה: <span id="today"></span></div>
+    </section>
+
+    <!-- 6 -->
+    <section class="step" data-step="done" hidden>
+      <h2>הבקשה מוכנה</h2>
+      <p class="hint" id="doneHint">קובץ ה-PDF נוצר. יש לשמור אותו ולשלוח אותו במייל יחד עם המסמכים הנדרשים.</p>
+      <div class="pages" id="pages"></div>
+      <div class="row"><button type="button" class="primary" id="saveBtn">שמירת קובץ ה-PDF</button><button type="button" id="shareBtn" hidden>שליחת הקובץ מהטלפון</button><span id="saveMsg" class="small"></span></div>
+      
+
+      <h2>שליחה במייל</h2>
+      <div class="addr" id="addr"></div>
+      <div class="f"><span class="lbl">נושא ההודעה</span><div class="addr"><div><span id="subj"></span><button type="button" class="link" data-copy="subj">העתקה</button></div></div></div>
+      <div class="f"><span class="lbl">מסמכים לצירוף להודעה</span><ul class="docs" id="attachList"></ul></div>
+      <div class="row"><a id="mailLink" href="#">פתיחת הודעת מייל</a></div>
+      <p class="small">אם ההודעה אינה נפתחת, יש להעתיק את הכתובות והנושא ידנית ולצרף את קובץ ה-PDF. ניתן לוודא קבלת המייל במזכירות היועמ"ש בטלפון <span dir="ltr">02-5428150</span>.</p>
+      <button type="button" class="link" id="restart">מילוי בקשה חדשה</button>
+    </section>
+
+    <div class="nav" id="nav">
+      <button type="button" id="back">חזרה</button>
+      <button type="button" class="primary" id="next">המשך</button>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+document.documentElement.setAttribute('dir','rtl');document.documentElement.lang='he';
+
+/* כתובות המייל לשליחה — יש לעדכן לפני הפצה ללקוחות */
+const CONFIG={ legalAdvisorEmail:'yoamash@police.gov.il', officeEmail:'shadysrouji@gmail.com' };
+
+const EVENT_DOC='פירוט פרטי האירוע (מתמלא בטופס זה)';
+const PROCS=[
+ {id:'mahash',t:'חקירה במח"ש',d:[EVENT_DOC],ev:1},
+ {id:'poly',t:'פוליגרף',d:[EVENT_DOC],ev:1},
+ {id:'shp',t:'שימוע פלילי',d:['מכתב יידוע','פירוט על נסיבות החקירה']},
+ {id:'ilat',t:'בקשה לשינוי עילת סגירה',d:['חקירה במח"ש','מכתב סגירה ממח"ש']},
+ {id:'court',t:'בית משפט שלום / מחוזי',d:['חקירה במח"ש','כתב אישום','זימון לבית המשפט']},
+ {id:'appc',t:'ערעור לבית המשפט המחוזי / לבית המשפט העליון',d:['כתב אישום','פסק הדין מהערכאה הקודמת']},
+ {id:'shm',t:'שימוע מנהלי',d:['חקירה במח"ש','פתיח לשימוע']},
+ {id:'disc',t:'בית הדין למשמעת',d:['חקירה במח"ש','כתב אישום','זימון לבית הדין למשמעת']},
+ {id:'shmm',t:'שימוע במחלקת משמעת',d:['הודעה על העברת התיק למחלקת משמעת']},
+ {id:'appd',t:'ערעור לבית הדין לערעורים / לבית המשפט המחוזי',d:['כתב אישום','פסק הדין מהערכאה הקודמת']},
+ {id:'atira',t:'עתירה מנהלית',d:['כתב העתירה','זימון לבית המשפט']},
+ {id:'civil',t:'תביעה אזרחית',d:['כתב התביעה','זימון לבית המשפט']},
+ {id:'vaada',t:'ועדת חקירה ממלכתית / ועדת בדיקה ממשלתית',d:['פנייה / זימון מהוועדה']},
+ {id:'ethics',t:'ועדת אתיקה מקצועית',d:['קובלנה','זימון לוועדה']},
+ {id:'mevaker',t:'דו"ח מבקר המדינה',d:['הקטע הרלוונטי בדו"ח']},
+ {id:'nabatam',t:'נבת"מ',d:['פניית הנבת"מ']},
+ {id:'other',t:'אחר',d:[]}
+];
+const STEP_NAMES={personal:'פרטים אישיים',proc:'ההליך',rep:'ייצוג',event:'פרטי האירוע',sign:'הצהרה וחתימה',done:'סיום'};
+const $=id=>document.getElementById(id);
+
+/* procedure list */
+$('procList').innerHTML=PROCS.map(p=>`<label class="choice"><input type="radio" name="proc" value="${p.id}"><span><span>${p.t}</span>${p.d.length?`<ul class="docs" hidden>${p.d.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}</span></label>`).join('');
+document.querySelectorAll('input[name=proc]').forEach(r=>r.addEventListener('change',()=>{
+  document.querySelectorAll('#procList .docs').forEach(u=>u.hidden=true);
+  const u=r.closest('.choice').querySelector('.docs'); if(u){u.hidden=false; if(!u.dataset.h){u.insertAdjacentHTML('afterbegin','<b>מסמכים לצירוף:</b>');u.dataset.h=1}}
+  $('f-procOther').hidden=r.value!=='other'; save();
+}));
+document.querySelectorAll('input[name=stype]').forEach(r=>r.addEventListener('change',()=>{$('stypeOther').hidden=r.value!=='אחר'}));
+
+const radio=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value||'';
+const proc=()=>PROCS.find(p=>p.id===radio('proc'));
+function steps(){const p=proc();return ['personal','proc','rep',...(p&&p.ev?['event']:[]),'sign','done']}
+let cur='personal';
+
+function render(){
+  const s=steps(),i=s.indexOf(cur);
+  document.querySelectorAll('section.step').forEach(x=>x.hidden=x.dataset.step!==cur);
+  $('bar').innerHTML=s.slice(0,-1).map((_,k)=>`<span class="${k<=i?'on':''}"></span>`).join('');
+  $('steplabel').textContent=cur==='done'?'הושלם':`שלב ${i+1} מתוך ${s.length-1}: ${STEP_NAMES[cur]}`;
+  $('nav').hidden=cur==='done';
+  $('back').style.visibility=i===0?'hidden':'visible';
+  $('next').textContent=cur==='sign'?'יצירת הבקשה':'המשך';
+  if(cur==='sign') sizePad();
+  window.scrollTo({top:0});
+}
+
+/* validation */
+function setErr(el,msg){const f=el.closest('.f');if(!f)return;f.classList.toggle('bad',!!msg);const e=f.querySelector('.err');if(e)e.textContent=msg||''}
+function validTz(v){if(!/^\d{5,9}$/.test(v))return false;v=v.padStart(9,'0');let s=0;for(let i=0;i<9;i++){let d=+v[i]*((i%2)+1);s+=d>9?d-9:d}return s%10===0}
+function validate(step){
+  let ok=true;const sec=document.querySelector(`[data-step=${step}]`);
+  sec.querySelectorAll('input[required],textarea[required]').forEach(el=>{
+    const v=el.value.trim();let m='';
+    if(!v)m='שדה חובה.';
+    else if(el.id==='tz'&&!validTz(v))m='מספר תעודת הזהות אינו תקין. יש לוודא 9 ספרות, כולל ספרת ביקורת.';
+    else if(el.id==='phone'&&v.replace(/\D/g,'').length<9)m='מספר הטלפון אינו שלם.';
+    setErr(el,m);if(m)ok=false});
+  if(step==='personal'){const t=radio('stype');let m=!t?'יש לבחור סוג שירות.':(t==='אחר'&&!$('stypeOther').value.trim()?'יש לפרט את סוג השירות.':'');setErr($('stypeOther'),m);if(m)ok=false}
+  if(step==='proc'){let m=radio('proc')?'':'יש לבחור הליך.';setErr($('procList'),m);if(m)ok=false;
+    if(radio('proc')==='other'){let m2=$('procOther').value.trim()?'':'יש לפרט את ההליך.';setErr($('procOther'),m2);if(m2)ok=false}}
+  if(step==='rep'){let m=radio('rep')?'':'יש לבחור את אופן הייצוג.';setErr(document.querySelector('[name=rep]'),m);if(m)ok=false}
+  if(step==='sign'){let m=$('agree').checked?'':'יש לאשר את ההצהרה.';setErr($('agree'),m);if(m)ok=false;
+    let m2=hasInk?'':'יש לחתום בתוך המסגרת.';setErr($('pad'),m2);if(m2)ok=false}
+  if(!ok){const b=sec.querySelector('.f.bad');if(b)b.scrollIntoView({block:'center',behavior:'smooth'})}
+  return ok;
+}
+$('next').onclick=async()=>{if(!validate(cur))return;const s=steps();
+  if(cur==='sign'){$('next').disabled=true;$('next').textContent='יוצר את הקובץ…';try{await build()}finally{$('next').disabled=false}}
+  cur=s[s.indexOf(cur)+1];render();save()};
+$('back').onclick=()=>{const s=steps();cur=s[Math.max(0,s.indexOf(cur)-1)];render()};
+
+/* signature pad */
+const pad=$('pad');let pctx,drawing=false,hasInk=false,last=null;
+function sizePad(){const r=pad.getBoundingClientRect();if(!r.width)return;const d=window.devicePixelRatio||1;
+  if(pad.width===Math.round(r.width*d))return;const keep=hasInk?pad.toDataURL():null;
+  pad.width=Math.round(r.width*d);pad.height=Math.round(r.height*d);pctx=pad.getContext('2d');pctx.scale(d,d);
+  pctx.lineWidth=2.4;pctx.lineCap='round';pctx.lineJoin='round';pctx.strokeStyle='#101820';
+  if(keep){const im=new Image();im.onload=()=>pctx.drawImage(im,0,0,r.width,r.height);im.src=keep}}
+const pt=e=>{const r=pad.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+pad.addEventListener('pointerdown',e=>{sizePad();drawing=true;last=pt(e);pad.setPointerCapture(e.pointerId);e.preventDefault()});
+pad.addEventListener('pointermove',e=>{if(!drawing)return;const p=pt(e);pctx.beginPath();pctx.moveTo(last.x,last.y);pctx.lineTo(p.x,p.y);pctx.stroke();last=p;hasInk=true;setErr(pad,'')});
+['pointerup','pointercancel'].forEach(t=>pad.addEventListener(t,()=>drawing=false));
+$('clearSig').onclick=()=>{pctx&&pctx.clearRect(0,0,pad.width,pad.height);hasInk=false};
+window.addEventListener('resize',()=>{if(cur==='sign')sizePad()});
+
+const today=new Date();const fmt=d=>d?d.split('-').reverse().join('/'):'';
+$('today').textContent=today.toLocaleDateString('he-IL');
+
+/* PDF drawing (canvas renders Hebrew RTL correctly) */
+const W=1240,H=1754,M=96,FONT='"David Libre","David",serif';
+let pages=[],c,x,y;
+function newPage(){c=document.createElement('canvas');c.width=W;c.height=H;x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  x.direction='rtl';x.fillStyle='#111';x.font=`700 22px ${FONT}`;x.textAlign='center';x.fillText('-בלמ"ס-',W/2,52);x.fillText('-בלמ"ס-',W/2,H-36);x.textAlign='right';pages.push(c);y=M}
+function font(sz,b){x.font=`${b?700:400} ${sz}px ${FONT}`}
+function ensure(h){if(y+h>H-M)newPage()}
+function wrap(t,w){const out=[];String(t).split('\n').forEach(par=>{let line='';par.split(/\s+/).forEach(wd=>{const tr=line?line+' '+wd:wd;if(x.measureText(tr).width>w&&line){out.push(line);line=wd}else line=tr});out.push(line)});return out}
+function para(t,{sz=26,b=false,ind=0,gap=8,lh=1.45}={}){font(sz,b);wrap(t,W-2*M-ind).forEach(l=>{ensure(sz*lh);y+=sz*lh;x.fillText(l,W-M-ind,y-sz*.3)});y+=gap}
+function heading(t){ensure(70);y+=18;font(28,true);y+=30;x.fillText(t,W-M,y);y+=10;x.strokeStyle='#888';x.lineWidth=1;x.beginPath();x.moveTo(M,y);x.lineTo(W-M,y);x.stroke();y+=8}
+function pair(label,val,rx,w){font(26,true);const lw=x.measureText(label+': ').width;x.fillText(label+':',rx,y);font(26,false);
+  let v=val||'—';while(x.measureText(v).width>w-lw-6&&v.length>1)v=v.slice(0,-1);x.fillText(v,rx-lw,y)}
+function pairs(arr){for(let i=0;i<arr.length;i+=2){ensure(46);y+=40;const half=(W-2*M)/2-12;pair(arr[i][0],arr[i][1],W-M,half);if(arr[i+1])pair(arr[i+1][0],arr[i+1][1],W/2-12,half)}y+=8}
+function box(t,on,ind=0){ensure(44);y+=40;const bx=W-M-ind-26;x.strokeStyle='#111';x.lineWidth=2;x.strokeRect(bx,y-24,24,24);
+  if(on){x.beginPath();x.moveTo(bx+4,y-20);x.lineTo(bx+20,y-4);x.moveTo(bx+20,y-20);x.lineTo(bx+4,y-4);x.stroke()}
+  font(26,on);const lines=wrap(t,W-2*M-ind-40);x.fillText(lines[0],bx-12,y);for(let k=1;k<lines.length;k++){y+=36;x.fillText(lines[k],bx-12,y)}}
+
+async function build(){
+  try{await Promise.all([document.fonts.load(`400 26px "David Libre"`),document.fonts.load(`700 26px "David Libre"`)])}catch(e){}
+  pages=[];newPage();const v=id=>$(id).value.trim();const p=proc();
+  font(40,true);x.textAlign='center';y+=30;x.fillText('בקשה לסיוע משפטי',W/2,y);x.textAlign='right';y+=24;
+  heading('פרטים אישיים');
+  const st=radio('stype')==='אחר'?'אחר: '+v('stypeOther'):radio('stype');
+  pairs([['שם פרטי',v('first')],['שם משפחה',v('last')],['מספר אישי',v('pn')],['מספר ת"ז',v('tz')],['סוג',st],['דרגה',v('rank')],['טלפון נייד',v('phone')],['תפקיד',v('role')],['יחידת השירות',v('unit')],['קצין הרווחה המטפל',v('welfare')]]);
+  heading('הבקשה');
+  para('אני מבקש בזאת את סיוע המשטרה במימון ייצוג משפטי בהליך, כדלקמן:');
+  PROCS.forEach(q=>{const on=q.id===p.id;let t=q.t+(q.id==='other'&&on?' – '+v('procOther'):'');box(t,on)});
+  y+=10;if(p.d.length){para('המסמכים שיש לצרף לבקשה: '+p.d.filter(d=>d!==EVENT_DOC).concat(p.ev?['פרטי האירוע (מפורטים להלן)']:[]).join('; ')+'.',{sz:23})}
+  heading('הייצוג המשפטי');
+  box('אני מבקש למנות לי עו"ד מטעם חברת הביטוח ענבל.',radio('rep')==='inbal');
+  box('אני מבקש לקבל את סיוע המשטרה במימון הוצאות עורך דין פרטי.',radio('rep')==='private');
+  y+=12;para('ידוע לי כי במידה ואבחר בייצוג פרטי, תקרת התשלומים אותם אקבל היא בהתאם לתעריף חברת הביטוח ענבל. כמו כן, בבקשה להחזר עבור ייצוג פרטי, יש לצרף קבלות.',{sz:23});
+  pairs([['מועד הדיון הראשון',fmt(v('hdate'))],['מקום הדיון',v('hplace')]]);
+  pairs([['עו"ד המייצג אותי',v('lawyer')]]);
+  heading('הסיוע');
+  document.querySelectorAll('.decl li').forEach((li,k)=>para((k+1)+'. '+li.textContent,{sz:24}));
+  if(p.ev){heading('חקירה במח"ש / זימון לפוליגרף – פרטי האירוע');
+    para('תאריך האירוע: '+fmt(v('edate')),{b:true});
+    para('מה אירע:',{b:true,gap:0});para(v('edesc'));
+    para('תוצאות האירוע:',{b:true,gap:0});para(v('eres'));
+    para('עמדת השוטר למיוחס לו:',{b:true,gap:0});para(v('epos'))}
+  ensure(230);y+=40;font(26,true);x.fillText('תאריך: '+today.toLocaleDateString('he-IL'),W-M,y+120);
+  const sw=380,sh=sw*pad.height/pad.width;x.drawImage(pad,M,y,sw,sh);
+  x.strokeStyle='#111';x.lineWidth=1;x.beginPath();x.moveTo(M,y+sh+6);x.lineTo(M+sw,y+sh+6);x.stroke();
+  font(24,false);x.textAlign='center';x.fillText('חתימה',M+sw/2,y+sh+36);x.textAlign='right';y+=sh+60;
+  para('את הטופס עם המסמכים הנדרשים יש לשלוח במייל ל"לשכת יועמ"ש". ניתן לוודא קבלת המייל במזכירות היועמ"ש – 02-5428150.',{sz:21});
+  pages.forEach((pg,i)=>{font(20,false);x=pg.getContext('2d');x.direction='rtl';x.textAlign='left';x.font=`400 20px ${FONT}`;x.fillStyle='#555';x.fillText(`עמוד ${i+1} מתוך ${pages.length}`,M,H-36)});
+  const {jsPDF}=window.jspdf;const pdf=new jsPDF({unit:'mm',format:'a4',compress:true});
+  pages.forEach((pg,i)=>{if(i)pdf.addPage();pdf.addImage(pg.toDataURL('image/jpeg',0.9),'JPEG',0,0,210,297)});
+  pdfBlob=pdf.output('blob');fileName=`בקשה לסיוע משפטי - ${v('first')} ${v('last')}.pdf`;
+  $('pages').innerHTML='';pages.forEach((pg,i)=>{const im=new Image();im.src=pg.toDataURL('image/jpeg',0.85);im.alt='עמוד '+(i+1);$('pages').appendChild(im)});
+  fillSend(p,v);clearDraft();try{$('shareBtn').hidden=!(navigator.canShare&&navigator.canShare({files:[new File([pdfBlob],'a.pdf',{type:'application/pdf'})]}))}catch(e){}
+}
+let pdfBlob=null,fileName='';
+
+function fillSend(p,v){
+  const subj=`בקשה לסיוע משפטי – ${v('first')} ${v('last')}, מ"א ${v('pn')}`;$('subj').textContent=subj;
+  const to=CONFIG.legalAdvisorEmail,cc=CONFIG.officeEmail;
+  $('addr').innerHTML=(to?`<div><span>אל (לשכת היועמ"ש): <code id="toA">${to}</code></span><button type="button" class="link" data-copy="toA">העתקה</button></div>`:'')+
+    `<div><span>${to?'העתק':'אל'} (המשרד): <code id="ccA">${cc}</code></span><button type="button" class="link" data-copy="ccA">העתקה</button></div>`;
+  $('attachList').innerHTML=['קובץ ה-PDF של הבקשה'].concat(p.d.filter(d=>d!==EVENT_DOC)).map(d=>`<li>${d}</li>`).join('');
+  const body='שלום רב,\nמצורפת בקשה לסיוע משפטי, בצירוף המסמכים הנדרשים.\n\nבברכה,\n'+v('first')+' '+v('last')+'\n'+v('phone');
+  $('mailLink').href=`mailto:${encodeURIComponent(to||cc)}?${to?'cc='+encodeURIComponent(cc)+'&':''}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-copy]');if(!b)return;const t=$(b.dataset.copy).textContent;
+  try{await navigator.clipboard.writeText(t);b.textContent='הועתק'}catch(err){const r=document.createRange();r.selectNodeContents($(b.dataset.copy));const s=getSelection();s.removeAllRanges();s.addRange(r)}});
+
+$('saveBtn').onclick=()=>{const u=URL.createObjectURL(pdfBlob);const a=document.createElement('a');a.href=u;a.download=fileName;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);$('saveMsg').innerHTML='<span class="ok">הקובץ נשמר.</span>'};
+$('shareBtn').onclick=async()=>{const f=new File([pdfBlob],fileName,{type:'application/pdf'});
+  try{await navigator.share({files:[f],title:$('subj').textContent,text:$('subj').textContent})}catch(e){if(e.name!=='AbortError')$('saveMsg').textContent='השיתוף אינו זמין במכשיר זה. יש לשמור את הקובץ ולצרף אותו ידנית.'}};
+$('restart').onclick=()=>{$('form').reset();$('clearSig').click();document.querySelectorAll('#procList .docs').forEach(u=>u.hidden=true);$('stypeOther').hidden=true;$('f-procOther').hidden=true;cur='personal';render()};
+
+/* draft kept only on this device until the PDF is created */
+const KEY='legal-aid-draft';
+function save(){try{const d={};document.querySelectorAll('#form input[type=text],#form input[type=tel],#form input[type=date],#form textarea').forEach(el=>d[el.id]=el.value);
+  d.stype=radio('stype');d.proc=radio('proc');d.rep=radio('rep');localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+function clearDraft(){try{localStorage.removeItem(KEY)}catch(e){}}
+try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){Object.keys(d).forEach(k=>{const el=$(k);if(el&&'value' in el)el.value=d[k]});
+  ['stype','proc','rep'].forEach(n=>{if(d[n]){const r=document.querySelector(`input[name=${n}][value="${d[n]}"]`);if(r){r.checked=true;r.dispatchEvent(new Event('change'))}}})}}catch(e){}
+$('form').addEventListener('input',save);
+$('form').addEventListener('submit',e=>e.preventDefault());
+render();
+})();
+</script>
+
+</body>
+</html>
