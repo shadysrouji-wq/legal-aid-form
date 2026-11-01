@@ -40,6 +40,7 @@ h2{font-family:var(--display);font-size:22px;margin:0;font-weight:700}
 .opt{color:var(--muted);font-weight:400;font-size:13px}
 input[type=text],input[type=tel],input[type=date],textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 12px;width:100%;box-sizing:border-box}
 textarea{min-height:96px;resize:vertical}
+textarea.short{min-height:0}
 input:focus-visible,textarea:focus-visible,button:focus-visible,.choice:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .err{color:var(--danger);font-size:14px;min-height:0}
 .f.bad input,.f.bad textarea{border-color:var(--danger)}
@@ -125,6 +126,7 @@ body{margin:0}[hidden]{display:none!important}img{max-width:100%}
       <p class="hint">יש לבחור את ההליך שבגינו מתבקש מימון הייצוג. לאחר הבחירה תוצג רשימת המסמכים שיש לצרף.</p>
       <div class="f" id="f-proc"><div class="list" id="procList"></div><div class="err"></div></div>
       <div class="f" id="f-procOther" hidden><label for="procOther">פירוט ההליך</label><input id="procOther" type="text"><div class="err"></div></div>
+      <div class="f"><label for="facts">עובדות האירוע בקצרה</label><textarea id="facts" class="short" rows="2" maxlength="220" required placeholder="לדוגמה: מעצר של חשוד בעת שימוש בכוח"></textarea><span class="small">עד שתי שורות.</span><div class="err"></div></div>
     </section>
 
     <!-- 3 -->
@@ -327,6 +329,7 @@ async function build(){
   para('אני מבקש בזאת את סיוע המשטרה במימון ייצוג משפטי בהליך, כדלקמן:');
   PROCS.forEach(q=>{const on=q.id===p.id;let t=q.t+(q.id==='other'&&on?' – '+v('procOther'):'');box(t,on)});
   y+=10;if(p.d.length){para('המסמכים שיש לצרף לבקשה: '+p.d.filter(d=>d!==EVENT_DOC).concat(p.ev?['פרטי האירוע (מפורטים להלן)']:[]).join('; ')+'.',{sz:23})}
+  para('עובדות האירוע בקצרה: '+v('facts'),{b:false});
   heading('הייצוג המשפטי');
   box('אני מבקש למנות לי עו"ד מטעם חברת הביטוח ענבל.',radio('rep')==='inbal');
   box('אני מבקש לקבל את סיוע המשטרה במימון הוצאות עורך דין פרטי.',radio('rep')==='private');
